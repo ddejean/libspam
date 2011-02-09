@@ -7,8 +7,14 @@
 #ifndef _PROTOCOL_H_
 #define _PROTOCOL_H_
 
-/* Port de connexion au serveur de commandes */
 #define         CMD_PORT        0x1337
+#define         MSG_SIZE        1022            /* Taille d'un message */
+#define         DATA_SIZE       1024            /* Taille d'un paquet de données */
+#define         BUF_SIZE        1024            /* Taille d'un buffer */
+
+/* Buffers d'émission et réception */
+extern char *send_buf;
+extern char *recv_buf;
 
 /* Structure décrivant une connexion */
 typedef struct _conn_t {
@@ -24,7 +30,7 @@ typedef struct _conn_t {
  * dans <*buffer>.
  * Retourne 0 si réussi, -1 la réception a échouée.
  */
-int spam_recv(int socket, char **buffer, int size);
+int spam_recv(int socket, char **buffer);
 
 /*
  * Attendre un acquitement ou une erreur de la part du serveur.
@@ -34,7 +40,7 @@ int spam_recv(int socket, char **buffer, int size);
  * description de l'erreur.
  * Retourne 0 si la reception s'est bien passée, -1 sinon.
  */
-int spam_ack(conn_t connexion, int *number, char **error);
+int spam_ack(int socket, int *number, char **error);
 
 
 /*
