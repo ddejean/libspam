@@ -279,11 +279,9 @@ int spam_data(conn_t *connection, char *buffer)
         char *error;
 
         /* Copier les données dans le buffer d'envoi et zou ! */
-        memset(send_buf, 0, BUF_SIZE);
-        strncpy(send_buf, buffer, connection->buf_size);
-        ret = send(connection->data_sock, send_buf, connection->buf_size, 0);
+        ret = send(connection->data_sock, buffer, connection->buf_size, 0);
         if (ret < 0) {
-                error("Impossible d'envoyer le paquet de données.");
+                error("Impossible d'envoyer le paquet de données.\n");
                 return -1;
         }
 
