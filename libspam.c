@@ -60,7 +60,10 @@ conn_t *spam_connect(char *tx_name) {
 
         /* Initialiser la connexion de commandes */
         ret = connect(cmd_sock, (struct sockaddr*)&tx_cmd, sizeof(struct sockaddr_in));
-        if (ret < 0) goto err_connect;
+        if (ret < 0) {
+                error("Impossible d'ouvrir la connexion sur \"cmd_sock\".\n");
+                goto err_connect;
+        }
         spam_knock(connection, &buf_size, &data_port, &key);
         debug("Connexion réussie: buf_size = %d, data_port = %d, key = %d\n",
                         buf_size,
@@ -72,7 +75,10 @@ conn_t *spam_connect(char *tx_name) {
         tx_data.sin_addr.s_addr = ((struct in_addr*)(tx_host->h_addr))->s_addr;
         tx_data.sin_port        = htons(data_port);
         ret = connect(data_sock, (struct sockaddr*)&tx_data, sizeof(struct sockaddr_in));
-        if (ret < 0) goto err_connect;
+        if (ret < 0) {
+                error("Impossible d'ouvrir la connexion sur \"data_sock\".\n");
+                goto err_connect;
+        }
         spam_data_auth(connection, key);
 
         return connection;
@@ -113,11 +119,10 @@ int spam_disconnect(conn_t *connection)
                 error = -1;
                 goto error;
         }
-        /* Pour le moment recevoir un paquet indique que c'est bon
-         * il faudra revoir ça pour recevoir le bon ACK. */
         if (strncmp(recv_msg, "END SP4M", 8)) {
                 error("Réponse à la fermeture invalide.\n");
                 error = -1;
+                free(recv_msg);
                 goto error;
         }
 
@@ -181,7 +186,7 @@ int spam_config_dsp(conn_t *connection, int size, int channel, int rate)
         sprintf(send_buf, "CONF_DSP\nsize=%d\nchannel=%d\nrate=%d", size, channel, rate);
         ret = send(connection->cmd_sock, send_buf, MSG_SIZE, 0);
         if (ret < 0) {
-                error("Impossible d'envoyer la paquet de configuration.");
+                error("Impossible d'envoyer la paquet de configuration.\n");
                 return -1;
         }
 
@@ -215,7 +220,7 @@ int spam_volume(conn_t *connection, int left, int right)
         sprintf(send_buf, "VOLUME\nleft=%d\nright=%d", left, right);
         ret = send(connection->cmd_sock, send_buf, MSG_SIZE, 0);
         if (ret < 0) {
-                error("Impossible d'envoyer la paquet de changement de volume.");
+                error("Impossible d'envoyer la paquet de changement de volume.\n");
                 return -1;
         }
 
@@ -248,7 +253,7 @@ int spam_buffer(conn_t *connection, int buf_size)
         sprintf(send_buf, "BUFFER %d", buf_size);
         ret = send(connection->cmd_sock, send_buf, MSG_SIZE, 0);
         if (ret < 0) {
-                error("Impossible d'envoyer la commande de changement de buffer.");
+                error("Impossible d'envoyer la commande de changement de buffer.\n");
                 return -1;
         }
 
@@ -317,6 +322,10 @@ int main(int argc, char **argv)
         }
 
         connection = spam_connect(argv[1]);
+        if (connection == NULL) {
+                error("Abandon\n");
+                return -1;
+        }
         usleep(1000000);
         spam_reset(connection);
         spam_config_dsp(connection, 16, 2, 44100);

@@ -24,10 +24,8 @@ typedef struct _conn_t {
 } conn_t;
 
 /* 
- * Attend un message sur <socket> et le met dans le buffer pointé par <*buffer>,
- * attendu de taille <size>.
- * Si le buffer n'est pas alloué, il est alloué de taille <size> et retourné
- * dans <*buffer>.
+ * Attend un message sur <socket> et le met dans le buffer pointé par <*buffer>
+ * Si le buffer n'est pas alloué, il est alloué et retourné dans <*buffer>.
  * Retourne 0 si réussi, -1 la réception a échouée.
  */
 int spam_recv(int socket, char **buffer);

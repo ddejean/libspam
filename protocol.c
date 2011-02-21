@@ -18,10 +18,8 @@ char *send_buf;
 char *recv_buf;
 
 /* 
- * Attend un message sur <socket> et le met dans le buffer pointé par <*buffer>,
- * attendu de taille <size>.
- * Si le buffer n'est pas alloué, il est alloué de taille <size> et retourné
- * dans <*buffer>.
+ * Attend un message sur <socket> et le met dans le buffer pointé par <*buffer>
+ * Si le buffer n'est pas alloué, il est alloué et retourné dans <*buffer>.
  * Retourne 0 si réussi, -1 la réception a échouée.
  */
 int spam_recv(int socket, char **buffer)
@@ -73,7 +71,7 @@ int spam_ack(int socket, int *number, char **error)
         ret = spam_recv(socket, &ack);
         debug("Paquet recu: %s\n", ack);
         if (ret < -1) {
-                error("Aucun message n'a été reçu pour l'acquitement.");
+                error("Aucun message n'a été reçu pour l'acquitement.\n");
                 err = -1;
                 goto error;
         } 
@@ -92,10 +90,11 @@ int spam_ack(int socket, int *number, char **error)
         emsg = (char*) calloc(MSG_SIZE, sizeof(char));
         if (!strncmp(ack, "ERROR ", 6)) {
                 sscanf(ack, "ERROR %d : %s", &pnumber, emsg);           // Récupérer le numéro de paquet
-                for (i = 0, cur = ack; *cur != ':'; i++, cur++);        // Récupérer la chaine d'erreur en entrier
+                for (i = 0, cur = ack; *cur != ':'; i++, cur++);        // Récupérer la chaine d'erreur en entier
+                // car le sscanf met dans emsg que jusqu'au premier espace
                 strcpy(emsg, ack + i + 2);
         } else {
-                error("Aucun message recu n'était valide, abandon.");
+                error("Aucun message recu n'était valide, abandon.\n");
                 err = -1;
                 goto parse_error;
         }
@@ -154,7 +153,7 @@ int spam_knock(conn_t *connection, int *buf_size, int *data_port, int *key)
                buf_size,
                data_port,
                key);
-        if (version <= 0.0 && *buf_size <= 0 && *data_port <= 0) {
+        if (version <= 0.0 || *buf_size <= 0 || *data_port <= 0) {
                 error("Trame reçue invalide, abandon de la connexion.\n");
                 error = -1;
                 goto error_free;
@@ -214,14 +213,14 @@ error:
 int spam_send_reset(conn_t *connection)
 {
         int ret;
-        char *msg = "RESET";
+        const char *msg = "RESET";
 
         /* Envoyer le message de reset */
         memset(send_buf, 0, MSG_SIZE);
         strncpy(send_buf, msg, 6); 
         ret = send(connection->cmd_sock, send_buf, MSG_SIZE, 0);
         if (ret < -1) {
-                error("Impossible d'envoyer le signal de reset.");
+                error("Impossible d'envoyer le signal de reset.\n");
                 return -1;
         }
 
