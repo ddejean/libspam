@@ -339,8 +339,7 @@ int main(int argc, char **argv)
 	channel = buffer[22]+(buffer[23]<<8);
 	rate = buffer[24]+(buffer[25]<<8)+(buffer[26]<<16)+(buffer[27]<<24);
 	size = buffer[34];
-
-        spam_config_dsp(connection, 16, 2, 44100);
+        spam_config_dsp(connection, size, channel, rate);
         free(buffer);
 
         buffer = (char*) calloc(60000, sizeof(char));
